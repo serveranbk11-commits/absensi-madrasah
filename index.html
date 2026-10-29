@@ -853,7 +853,8 @@
             const m = parseInt(mStr) - 1; 
             
             const daysInMonth = new Date(y, m + 1, 0).getDate();
-            const hariSekolahTipe = state.settings.hari_sekolah || '6';
+            // DIPERBAIKI: Pastikan di-cast menjadi tipe data String secara tegas 
+            const hariSekolahTipe = String(state.settings.hari_sekolah || '6');
             let liburArr = [];
             try { if(state.settings.hari_libur) liburArr = JSON.parse(state.settings.hari_libur); } catch(e){}
 
@@ -867,9 +868,9 @@
                 const d = new Date(y, m, i);
                 const dayOfWeek = d.getDay(); 
                 
-                if(dayOfWeek === 0) continue; // Minggu libur
-                if(hariSekolahTipe === '5' && dayOfWeek === 6) continue; // Sabtu libur 5HK
-                if(liburArr.includes(dStr)) continue; // Tanggal merah
+                if(dayOfWeek === 0) continue; // Minggu libur mutlak
+                if(hariSekolahTipe === '5' && dayOfWeek === 6) continue; // Sabtu libur jika diset 5HK
+                if(liburArr.includes(dStr)) continue; // Tanggal merah nasional
 
                 totalEfektif++;
             }
@@ -1105,7 +1106,8 @@
             const [y, m, d] = tgl.split('-');
             const dateObj = new Date(y, m-1, d);
             const dayOfWeek = dateObj.getDay();
-            const hSekolah = state.settings.hari_sekolah || '6';
+            // DIPERBAIKI: Pastikan di-cast menjadi tipe data String secara tegas
+            const hSekolah = String(state.settings.hari_sekolah || '6');
             
             if (dayOfWeek === 0 || (hSekolah === '5' && dayOfWeek === 6)) return showToast("Tanggal ini adalah akhir pekan / hari libur", "error");
             if (tempLiburArr.includes(tgl)) return showToast("Tanggal ini diset sebagai Libur Nasional", "error");
