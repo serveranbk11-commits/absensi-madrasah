@@ -853,7 +853,6 @@
             const m = parseInt(mStr) - 1; 
             
             const daysInMonth = new Date(y, m + 1, 0).getDate();
-            // DIPERBAIKI: Pastikan di-cast menjadi tipe data String secara tegas 
             const hariSekolahTipe = String(state.settings.hari_sekolah || '6');
             let liburArr = [];
             try { if(state.settings.hari_libur) liburArr = JSON.parse(state.settings.hari_libur); } catch(e){}
@@ -1106,7 +1105,6 @@
             const [y, m, d] = tgl.split('-');
             const dateObj = new Date(y, m-1, d);
             const dayOfWeek = dateObj.getDay();
-            // DIPERBAIKI: Pastikan di-cast menjadi tipe data String secara tegas
             const hSekolah = String(state.settings.hari_sekolah || '6');
             
             if (dayOfWeek === 0 || (hSekolah === '5' && dayOfWeek === 6)) return showToast("Tanggal ini adalah akhir pekan / hari libur", "error");
@@ -1304,22 +1302,42 @@
                         }
                     });
                     
+                    // Cek Peringatan Kehadiran < 50%
+                    let finalY = doc.lastAutoTable.finalY || 100;
+                    let currentY = finalY + 10;
+                    const badAttendance = data.filter(s => s.stats.persentase < 50 && s.stats.total_hari > 0);
+
+                    if (badAttendance.length > 0) {
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(9);
+                        doc.setTextColor(220, 38, 38); // Warna merah Tailwind text-red-600
+                        doc.text("Catatan Khusus (Peringatan Kehadiran < 50%):", 14, currentY);
+                        
+                        doc.setFont("helvetica", "normal");
+                        doc.setTextColor(0, 0, 0); // Kembali ke hitam
+                        currentY += 5;
+                        
+                        badAttendance.forEach((s, idx) => {
+                            doc.text(`${idx + 1}. ${s.nama} (${s.stats.persentase}%) - Memerlukan surat teguran/pembinaan.`, 14, currentY);
+                            currentY += 5;
+                        });
+                        currentY += 5; // Jarak ekstra sebelum tanda tangan
+                    } else {
+                        currentY += 10; // Jarak normal jika tidak ada peringatan
+                    }
+
                     // TTD WALI KELAS DI BAWAH
-                    const finalY = doc.lastAutoTable.finalY || 100;
                     const tglCetak = new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
                     
                     doc.setFontSize(10);
-                    doc.text(`Mengetahui,`, 140, finalY + 15);
-                    doc.text(`Wali Kelas`, 140, finalY + 20);
+                    doc.text(`Mengetahui,`, 140, currentY);
+                    doc.text(`Wali Kelas`, 140, currentY + 5);
                     
                     doc.setFont("helvetica", "bold");
-                    doc.text(nmWali, 140, finalY + 40);
+                    doc.text(nmWali, 140, currentY + 25);
                     doc.setFont("helvetica", "normal");
-                    doc.text(`NIP. ${nipWali || '-'}`, 140, finalY + 45);
+                    doc.text(`NIP. ${nipWali || '-'}`, 140, currentY + 30);
                     
-                    // TTD Kepsek jika mau (Opsional)
-                    // doc.text(`Kepala Madrasah`, 20, finalY + 20); ... dst.
-
                     doc.save(`Laporan_Absensi_${kelas}_${bulan}.pdf`);
                     showToast("PDF berhasil diunduh");
                 } catch(e) {
