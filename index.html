@@ -680,8 +680,18 @@
         function forceLogout() {
             state.session_token = null;
             saveStateLocally();
+            
+            // Mengosongkan isian form saat logout (Fix)
+            document.getElementById('login-user').value = '';
+            document.getElementById('login-pass').value = '';
+            
+            // Mengelola tampilan layar
             document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('flex');
+            
             document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-screen').classList.add('flex');
+            
             showToast("Sesi diakhiri.", "info");
         }
 
@@ -714,8 +724,12 @@
                 state.absensi_log = res.data.absensi || [];
                 saveStateLocally();
                 
+                // Menutup layar login, memunculkan layar utama (Fix transisi flexbox)
                 document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('flex');
+                
                 document.getElementById('app-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('flex');
                 
                 applySettingsToUI();
                 switchTab(state.activeTab || 'dashboard');
